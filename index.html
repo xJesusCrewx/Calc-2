@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор свайного фундамента (PRO)</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --my-cost: #ea580c;
+            --client-price: #16a34a;
+            --profit: #7c3aed;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: var(--primary);
+        }
+        .section {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #fff;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .editable-field {
+            font-weight: 700;
+            border: 2px solid #e2e8f0;
+        }
+        .editable-field:focus {
+            border-color: var(--primary);
+        }
+        .label-my { color: var(--my-cost); font-weight: 700; }
+        .label-client { color: var(--client-price); font-weight: 700; }
+        .label-profit { color: var(--profit); font-weight: 700; }
+
+        .btn-calc {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-calc:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-calc:active { transform: translateY(0); }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .result-card {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid;
+        }
+        .card-my { background: #fff7ed; border-color: #fed7aa; }
+        .card-client { background: #f0fdf4; border-color: #bbf7d0; }
+        .card-profit { 
+            background: #faf5ff; 
+            border-color: #e9d5ff; 
+            grid-column: 1 / -1; 
+            text-align: center;
+        }
+        .card-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-my .card-title { color: var(--my-cost); }
+        .card-client .card-title { color: var(--client-price); }
+        .card-profit .card-title { color: var(--profit); font-size: 1.1rem; }
+
+        .res-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .res-row.total {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px dashed;
+        }
+        .card-my .res-row.total { border-color: #fdba74; color: #c2410c; }
+        .card-client .res-row.total { border-color: #86efac; color: #15803d; }
+
+        .per-pile {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .profit-big {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--profit);
+            margin: 10px 0;
+        }
+        .profit-sub {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .preview-box {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: "SF Mono", Monaco, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+            border: 1px solid #334155;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 12px;
+        }
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-secondary { background: #e2e8f0; color: #475569; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #16a34a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        @media (max-width: 600px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔩 Калькулятор свайного фундамента</h1>
+
+    <div class="section">
+        <div class="section-title">⚙️ Параметры заказа</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Диаметр сваи</label>
+                <select id="diameter" onchange="updateLengths()">
+                    <option value="57">57 мм</option>
+                    <option value="76">76 мм</option>
+                    <option value="89" selected>89 мм</option>
+                    <option value="108">108 мм</option>
+                    <option value="133">133 мм</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Длина сваи</label>
+                <select id="length"></select>
+            </div>
+            <div class="form-group">
+                <label>Тип завершения</label>
+                <select id="headType">
+                    <option value="150x150">Оголовок 150x150</option>
+                    <option value="200x200" selected>Оголовок 200x200</option>
+                    <option value="250x250">Оголовок 250x250</option>
+                    <option value="cone">Конус (под диаметр)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Количество (шт)</label>
+                <input type="number" id="qty" value="10" min="1">
+            </div>
+            <div class="form-group full-width">
+                <label class="label-client">Прайс для клиента</label>
+                <select id="priceTier">
+                    <option value="retail">Розница (Опт + 200 ₽)</option>
+                    <option value="opt">Опт (из таблицы)</option>
+                    <option value="special">Спецпрайс (из таблицы)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-calc" onclick="calculateInitial()">🧮 РАССЧИТАТЬ ЦЕНЫ</button>
+
+    <div class="section">
+        <div class="section-title">💰 Редактируемые цены (можно менять вручную)</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="label-client">Цена сваи для клиента (₽/шт)</label>
+                <input type="number" id="pilePriceClient" class="editable-field" oninput="updateTotals()">
+            </div>
+            <div class="form-group">
+                <label class="label-client">Цена оголовка для клиента (₽/шт)</label>
+                <input type="number" id="headPriceClient" class="editable-field" oninput="updateTotals()">
+            </div>
+            <div class="form-group">
+                <label>Монтаж за 1 сваю (₽)</label>
+                <input type="number" id="installPrice" class="editable-field" value="1700" oninput="updateTotals()">
+            </div>
+            <div class="form-group">
+                <label>Доставка (общая, ₽)</label>
+                <input type="number" id="deliveryClient" class="editable-field" value="1500" oninput="updateTotals()">
+            </div>
+            <div class="form-group full-width">
+                <label>Выезд на замер (₽)</label>
+                <input type="number" id="measureClient" class="editable-field" value="0" oninput="updateTotals()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="border-bottom: none;">
+        <div class="section-title">🧮 Подробный финансовый результат</div>
+        <div class="results-grid">
+            <div class="result-card card-my">
+                <div class="card-title">👤 Моя себестоимость (Спецпрайс)</div>
+                <div class="res-row"><span>Сваи:</span> <span id="myPiles">0 ₽</span></div>
+                <div class="res-row"><span>Завершение:</span> <span id="myHeads">0 ₽</span></div>
+                <div class="res-row"><span>Монтаж:</span> <span id="myInstall">0 ₽</span></div>
+                <div class="res-row"><span>Логистика:</span> <span id="myLogistics">0 ₽</span></div>
+                <div class="res-row total"><span>ИТОГО:</span> <span id="myTotal">0 ₽</span></div>
+                <div class="per-pile">За 1 сваю под ключ: <span id="myPerPile">0 ₽</span></div>
+            </div>
+
+            <div class="result-card card-client">
+                <div class="card-title">💼 Цена для клиента</div>
+                <div class="res-row"><span>Сваи:</span> <span id="clientPiles">0 ₽</span></div>
+                <div class="res-row"><span>Завершение:</span> <span id="clientHeads">0 ₽</span></div>
+                <div class="res-row"><span>Монтаж:</span> <span id="clientInstall">0 ₽</span></div>
+                <div class="res-row"><span>Логистика:</span> <span id="clientLogistics">0 ₽</span></div>
+                <div class="res-row total"><span>ИТОГО:</span> <span id="clientTotal">0 ₽</span></div>
+                <div class="per-pile">За 1 сваю под ключ: <span id="clientPerPile">0 ₽</span></div>
+            </div>
+
+            <div class="result-card card-profit">
+                <div class="card-title">💎 Твоя чистая прибыль</div>
+                <div class="profit-big" id="totalProfit">0 ₽</div>
+                <div class="profit-sub">Прибыль с 1 сваи под ключ: <strong id="profitPerPile">0 ₽</strong></div>
+            </div>
+        </div>
+
+        <div class="section-title">👁️ Предпросмотр для отправки клиенту</div>
+        <div class="preview-box" id="previewText">Нажмите "Рассчитать цены", чтобы сформировать предложение.</div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="resetForm()">✕ Сброс</button>
+            <button class="btn btn-primary" onclick="copyToClipboard()">📋 Скопировать расчёт</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast">✅ Расчёт скопирован в буфер!</div>
+
+<script>
+    // Прайс: opt = из колонки "Цена", special = из колонки "спецпрайс"
+    // Розница рассчитывается как opt + 200
+    const priceData = {
+        piles: {
+            57: { 1.5: {opt: 1400, special: 1350}, 2.0: {opt: 1600, special: 1550}, 2.5: {opt: 1700, special: 1650}, 3.0: {opt: 1800, special: 1750}, 3.5: {opt: 2000, special: 1950}, 4.0: {opt: 2300, special: 2250}, 4.5: {opt: 2600, special: 2550}, 5.0: {opt: 2900, special: 2850} },
+            76: { 1.5: {opt: 1500, special: 1450}, 2.0: {opt: 1700, special: 1650}, 2.5: {opt: 1900, special: 1850}, 3.0: {opt: 2100, special: 2050}, 3.5: {opt: 2800, special: 2750}, 4.0: {opt: 3100, special: 3050}, 4.5: {opt: 3600, special: 3550}, 5.0: {opt: 3950, special: 3900} },
+            89: { 1.5: {opt: 1700, special: 1650}, 2.0: {opt: 1900, special: 1850}, 2.5: {opt: 2200, special: 2150}, 3.0: {opt: 2450, special: 2400}, 3.5: {opt: 2900, special: 2850}, 4.0: {opt: 3200, special: 3150}, 4.5: {opt: 3300, special: 3250}, 5.0: {opt: 3700, special: 3650} },
+            108: { 2.0: {opt: 2300, special: 2250}, 2.5: {opt: 2700, special: 2650}, 3.0: {opt: 3000, special: 2950}, 3.5: {opt: 3500, special: 3450}, 4.0: {opt: 3800, special: 3750}, 4.5: {opt: 4200, special: 4150}, 5.0: {opt: 4700, special: 4650} },
+            133: { 2.0: {opt: 3500, special: 3400}, 2.5: {opt: 4000, special: 3900}, 3.0: {opt: 4500, special: 4400}, 3.5: {opt: 5000, special: 4900}, 4.0: {opt: 5500, special: 5400}, 4.5: {opt: 6000, special: 5900}, 5.0: {opt: 6500, special: 6400} }
+        },
+        heads: {
+            "150x150": {opt: 200, special: 150},
+            "200x200": {opt: 250, special: 200},
+            "250x250": {opt: 400, special: 350},
+            "cone": {
+                57: {opt: 300, special: 250},
+                76: {opt: 350, special: 300},
+                89: {opt: 350, special: 300},
+                108: {opt: 500, special: 450},
+                133: {opt: 600, special: 550}
+            }
+        }
+    };
+
+    function updateLengths() {
+        const diameter = document.getElementById('diameter').value;
+        const lengthSelect = document.getElementById('length');
+        lengthSelect.innerHTML = '';
+        
+        const lengths = Object.keys(priceData.piles[diameter]).sort((a,b) => parseFloat(a) - parseFloat(b));
+        lengths.forEach(len => {
+            const option = document.createElement('option');
+            option.value = len;
+            option.textContent = len + ' м';
+            lengthSelect.appendChild(option);
+        });
+    }
+
+    // Эта функция срабатывает ТОЛЬКО по кнопке "Рассчитать"
+    function calculateInitial() {
+        const diameter = document.getElementById('diameter').value;
+        const length = document.getElementById('length').value;
+        const headType = document.getElementById('headType').value;
+        const tier = document.getElementById('priceTier').value;
+
+        // 1. Определяем базовые цены из таблицы
+        const pileOpt = priceData.piles[diameter][length].opt;
+        const pileSpecial = priceData.piles[diameter][length].special;
+        
+        let headOpt, headSpecial;
+        if (headType === "cone") {
+            headOpt = priceData.heads.cone[diameter].opt;
+            headSpecial = priceData.heads.cone[diameter].special;
+        } else {
+            headOpt = priceData.heads[headType].opt;
+            headSpecial = priceData.heads[headType].special;
+        }
+
+        // 2. Применяем логику прайса для клиента
+        let clientPilePrice, clientHeadPrice;
+        if (tier === 'retail') {
+            clientPilePrice = pileOpt + 200;
+            clientHeadPrice = headOpt + 200; // Наценка на оголовок тоже +200, или можно убрать, если нужно только на сваи
+        } else if (tier === 'opt') {
+            clientPilePrice = pileOpt;
+            clientHeadPrice = headOpt;
+        } else {
+            clientPilePrice = pileSpecial;
+            clientHeadPrice = headSpecial;
+        }
+
+        // 3. Заполняем редактируемые поля
+        document.getElementById('pilePriceClient').value = clientPilePrice;
+        document.getElementById('headPriceClient').value = clientHeadPrice;
+
+        // 4. Запускаем пересчет итогов
+        updateTotals();
+    }
+
+    // Эта функция пересчитывает итоги на основе ТЕКУЩИХ значений в полях (даже если их изменили вручную)
+    function updateTotals() {
+        const diameter = document.getElementById('diameter').value;
+        const length = document.getElementById('length').value;
+        const headType = document.getElementById('headType').value;
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        
+        // Цены для клиента (берем из редактируемых полей!)
+        const pilePriceClient = parseFloat(document.getElementById('pilePriceClient').value) || 0;
+        const headPriceClient = parseFloat(document.getElementById('headPriceClient').value) || 0;
+        const installPrice = parseFloat(document.getElementById('installPrice').value) || 0;
+        const deliveryClient = parseFloat(document.getElementById('deliveryClient').value) || 0;
+        const measureClient = parseFloat(document.getElementById('measureClient').value) || 0;
+
+        // Цены для меня (всегда спецпрайс из таблицы, независимо от ручных правок клиента)
+        const pilePriceMy = priceData.piles[diameter][length].special;
+        let headPriceMy;
+        if (headType === "cone") {
+            headPriceMy = priceData.heads.cone[diameter].special;
+        } else {
+            headPriceMy = priceData.heads[headType].special;
+        }
+
+        // Расчеты
+        const totalPilesMy = pilePriceMy * qty;
+        const totalHeadsMy = headPriceMy * qty;
+        const totalInstallMy = installPrice * qty; // Монтаж считаем одинаковым для простоты, или можно разделить
+        const totalLogMy = deliveryClient; // Упрощенно считаем логистику одинаковой, или можно добавить отдельные поля для моей логистики
+
+        const totalPilesClient = pilePriceClient * qty;
+        const totalHeadsClient = headPriceClient * qty;
+        const totalInstallClient = installPrice * qty;
+        const totalLogClient = deliveryClient + measureClient;
+
+        const grandTotalMy = totalPilesMy + totalHeadsMy + totalInstallMy + totalLogMy;
+        const grandTotalClient = totalPilesClient + totalHeadsClient + totalInstallClient + totalLogClient;
+        
+        const profit = grandTotalClient - grandTotalMy;
+        const perPileMy = qty > 0 ? Math.round(grandTotalMy / qty) : 0;
+        const perPileClient = qty > 0 ? Math.round(grandTotalClient / qty) : 0;
+        const profitPerPile = qty > 0 ? Math.round(profit / qty) : 0;
+
+        // Обновление UI "Моя себестоимость"
+        document.getElementById('myPiles').textContent = totalPilesMy.toLocaleString() + ' ₽';
+        document.getElementById('myHeads').textContent = totalHeadsMy.toLocaleString() + ' ₽';
+        document.getElementById('myInstall').textContent = totalInstallMy.toLocaleString() + ' ₽';
+        document.getElementById('myLogistics').textContent = totalLogMy.toLocaleString() + ' ₽';
+        document.getElementById('myTotal').textContent = grandTotalMy.toLocaleString() + ' ₽';
+        document.getElementById('myPerPile').textContent = perPileMy.toLocaleString() + ' ₽';
+
+        // Обновление UI "Цена для клиента"
+        document.getElementById('clientPiles').textContent = totalPilesClient.toLocaleString() + ' ₽';
+        document.getElementById('clientHeads').textContent = totalHeadsClient.toLocaleString() + ' ₽';
+        document.getElementById('clientInstall').textContent = totalInstallClient.toLocaleString() + ' ₽';
+        document.getElementById('clientLogistics').textContent = totalLogClient.toLocaleString() + ' ₽';
+        document.getElementById('clientTotal').textContent = grandTotalClient.toLocaleString() + ' ₽';
+        document.getElementById('clientPerPile').textContent = perPileClient.toLocaleString() + ' ₽';
+
+        // Обновление UI "Прибыль"
+        document.getElementById('totalProfit').textContent = profit.toLocaleString() + ' ₽';
+        document.getElementById('profitPerPile').textContent = profitPerPile.toLocaleString() + ' ₽';
+
+        // Формирование предпросмотра
+        const headName = headType === "cone" ? `Конус ${diameter}мм` : `Оголовок ${headType}`;
+        const preview = `📋 РАСЧЁТ СВАЙНОГО ФУНДАМЕНТА
+
+🔩 Сваи ${diameter}мм × ${length}м: ${pilePriceClient.toLocaleString()} ₽ × ${qty} шт = ${totalPilesClient.toLocaleString()} ₽
+🔲 ${headName}: ${headPriceClient.toLocaleString()} ₽ × ${qty} шт = ${totalHeadsClient.toLocaleString()} ₽
+🔧 Монтаж: ${installPrice.toLocaleString()} ₽ × ${qty} шт = ${totalInstallClient.toLocaleString()} ₽
+🚚 Доставка: ${deliveryClient.toLocaleString()} ₽
+📏 Выезд на замер: ${measureClient === 0 ? 'Бесплатно' : measureClient.toLocaleString() + ' ₽'}
+
+💰 ИТОГО: ${grandTotalClient.toLocaleString()} ₽
+(Цена сваи под ключ: ${perPileClient.toLocaleString()} ₽/шт)`;
+
+        document.getElementById('previewText').textContent = preview;
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('previewText').textContent;
+        if (text.includes("Нажмите")) {
+            alert("Сначала нажмите кнопку 'Рассчитать цены'");
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+    }
+
+    function resetForm() {
+        document.getElementById('diameter').value = "89";
+        document.getElementById('headType').value = "200x200";
+        document.getElementById('qty').value = 10;
+        document.getElementById('priceTier').value = "retail";
+        document.getElementById('installPrice').value = 1700;
+        document.getElementById('deliveryClient').value = 1500;
+        document.getElementById('measureClient').value = 0;
+        document.getElementById('pilePriceClient').value = "";
+        document.getElementById('headPriceClient').value = "";
+        document.getElementById('previewText').textContent = "Нажмите \"Рассчитать цены\", чтобы сформировать предложение.";
+        
+        // Сброс итогов
+        ['myPiles','myHeads','myInstall','myLogistics','myTotal','myPerPile',
+         'clientPiles','clientHeads','clientInstall','clientLogistics','clientTotal','clientPerPile',
+         'totalProfit','profitPerPile'].forEach(id => {
+            document.getElementById(id).textContent = "0 ₽";
+        });
+        
+        updateLengths();
+    }
+
+    // Инициализация при загрузке
+    updateLengths();
+</script>
+
+</body>
+</html>
