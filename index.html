@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор свайного фундамента (PRO)</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --my-cost: #ea580c;
+            --client-price: #16a34a;
+            --profit: #7c3aed;
+            --factory: #0891b2;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: var(--primary);
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+        }
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .section {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #fff;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .editable-field {
+            font-weight: 700;
+            border: 2px solid #e2e8f0;
+        }
+        .editable-field:focus {
+            border-color: var(--primary);
+        }
+        .label-my { color: var(--my-cost); font-weight: 700; }
+        .label-client { color: var(--client-price); font-weight: 700; }
+        .label-profit { color: var(--profit); font-weight: 700; }
+        .label-factory { color: var(--factory); font-weight: 700; }
+
+        .btn-calc {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-calc:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-calc:active { transform: translateY(0); }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .result-card {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid;
+        }
+        .card-my { background: #fff7ed; border-color: #fed7aa; }
+        .card-client { background: #f0fdf4; border-color: #bbf7d0; }
+        .card-profit { 
+            background: #faf5ff; 
+            border-color: #e9d5ff; 
+            grid-column: 1 / -1; 
+            text-align: center;
+        }
+        .card-factory {
+            background: #ecfeff;
+            border-color: #a5f3fc;
+            grid-column: 1 / -1;
+        }
+        .card-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-my .card-title { color: var(--my-cost); }
+        .card-client .card-title { color: var(--client-price); }
+        .card-profit .card-title { color: var(--profit); font-size: 1.1rem; }
+        .card-factory .card-title { color: var(--factory); }
+
+        .res-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .res-row.total {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px dashed;
+        }
+        .card-my .res-row.total { border-color: #fdba74; color: #c2410c; }
+        .card-client .res-row.total { border-color: #86efac; color: #15803d; }
+        .card-factory .res-row.total { border-color: #67e8f9; color: #0e7490; }
+
+        .per-pile {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .profit-big {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--profit);
+            margin: 10px 0;
+        }
+        .profit-sub {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        .profit-breakdown {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .profit-breakdown div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .profit-breakdown .label {
+            color: #64748b;
+            font-weight: 600;
+        }
+        .profit-breakdown .value {
+            color: var(--profit);
+            font-weight: 700;
+        }
+        .shares-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px dashed #e9d5ff;
+        }
+        .share-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e9d5ff;
+        }
+        .share-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--profit);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .share-amount {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .preview-box {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: "SF Mono", Monaco, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+            border: 1px solid #334155;
+        }
+        .preview-box.internal {
+            background: #1e1b4b;
+            border-color: #4c1d95;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-secondary { background: #e2e8f0; color: #475569; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-internal { background: #7c3aed; color: white; }
+        .btn-internal:hover { background: #6d28d9; }
+        .btn-add { background: #16a34a; color: white; margin-top: 16px; }
+        .btn-add:hover { background: #15803d; }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+        .order-table th, .order-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .order-table th {
+            background: #f1f5f9;
+            font-weight: 700;
+            color: #475569;
+        }
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-remove:hover { background: #dc2626; }
+
+        .price-editor {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .price-editor h3 {
+            margin: 0 0 12px 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .price-table th, .price-table td {
+            padding: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .price-table th {
+            background: #e2e8f0;
+            font-weight: 700;
+            color: #475569;
+        }
+        .price-table input {
+            width: 100%;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+        }
+        .price-table input:focus {
+            border-color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #16a34a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        @media (max-width: 600px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .actions { grid-template-columns: 1fr; }
+            .shares-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔩 Калькулятор свайного фундамента</h1>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('calc')">🧮 Калькулятор</button>
+        <button class="tab" onclick="switchTab('prices')">💰 Редактор прайса</button>
+    </div>
+
+    <!-- ВКЛАДКА КАЛЬКУЛЯТОРА -->
+    <div id="tab-calc" class="tab-content active">
+        <div class="section">
+            <div class="section-title">⚙️ Параметры заказа</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Диаметр сваи</label>
+                    <select id="diameter" onchange="updateLengths()">
+                        <option value="57">57 мм</option>
+                        <option value="76">76 мм</option>
+                        <option value="89" selected>89 мм</option>
+                        <option value="108">108 мм</option>
+                        <option value="133">133 мм</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Длина сваи</label>
+                    <select id="length"></select>
+                </div>
+                <div class="form-group">
+                    <label>Тип оголовка</label>
+                    <select id="headType">
+                        <option value="150x150">Оголовок 150x150</option>
+                        <option value="200x200" selected>Оголовок 200x200</option>
+                        <option value="250x250">Оголовок 250x250</option>
+                        <option value="cone">Конус (под диаметр)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Количество (шт)</label>
+                    <input type="number" id="qty" value="10" min="1">
+                </div>
+                <div class="form-group full-width">
+                    <label class="label-client">Прайс для клиента</label>
+                    <select id="priceTier">
+                        <option value="retail_100">Розница (Опт + 100 ₽)</option>
+                        <option value="retail_200" selected>Розница (Опт + 200 ₽)</option>
+                        <option value="retail_300">Розница (Опт + 300 ₽)</option>
+                        <option value="retail_400">Розница (Опт + 400 ₽)</option>
+                        <option value="opt">Опт (из таблицы)</option>
+                        <option value="special">Спецпрайс (из таблицы)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-add" onclick="addToOrder()">➕ Добавить в заказ</button>
+        </div>
+
+        <div class="section" id="orderSection" style="display: none;">
+            <div class="section-title">📦 Заказ</div>
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Тип</th>
+                        <th>Длина</th>
+                        <th>Оголовок</th>
+                        <th>Кол-во</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="orderBody"></tbody>
+            </table>
+        </div>
+
+        <button class="btn-calc" onclick="calculateInitial()">🧮 РАССЧИТАТЬ ЦЕНЫ</button>
+
+        <div class="section">
+            <div class="section-title">💰 Редактируемые цены (можно менять вручную)</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label-client">Цена сваи для клиента (₽/шт)</label>
+                    <input type="number" id="pilePriceClient" class="editable-field" oninput="updateTotals()">
+                </div>
+                <div class="form-group">
+                    <label class="label-client">Цена оголовка для клиента (₽/шт)</label>
+                    <input type="number" id="headPriceClient" class="editable-field" oninput="updateTotals()">
+                </div>
+                <div class="form-group">
+                    <label class="label-client">Монтаж для клиента (₽/шт)</label>
+                    <input type="number" id="installPrice" class="editable-field" value="1700" oninput="updateTotals()">
+                </div>
+                <div class="form-group">
+                    <label class="label-my">Себестоимость монтажа (₽/шт)</label>
+                    <input type="number" id="installCostMy" class="editable-field" value="1200" oninput="updateTotals()">
+                </div>
+                <div class="form-group">
+                    <label>Доставка (общая, ₽)</label>
+                    <input type="number" id="deliveryClient" class="editable-field" value="1500" oninput="updateTotals()">
+                </div>
+                <div class="form-group full-width">
+                    <label>Стоимость выезда (₽)</label>
+                    <input type="number" id="measureClient" class="editable-field" value="0" oninput="updateTotals()">
+                </div>
+            </div>
+        </div>
+
+        <div class="section" style="border-bottom: none;">
+            <div class="section-title">🧮 Подробный финансовый результат</div>
+            <div class="results-grid">
+                <!-- НОВАЯ КАРТОЧКА: К оплате заводу -->
+                <div class="result-card card-factory">
+                    <div class="card-title">🏭 К оплате заводу (ОПТ)</div>
+                    <div class="res-row"><span>Сваи:</span> <span id="factoryPiles">0 ₽</span></div>
+                    <div class="res-row"><span>Оголовки:</span> <span id="factoryHeads">0 ₽</span></div>
+                    <div class="res-row total"><span>ИТОГО заводу:</span> <span id="factoryTotal">0 ₽</span></div>
+                </div>
+
+                <div class="result-card card-my">
+                    <div class="card-title">👤 Моя себестоимость</div>
+                    <div class="res-row"><span>Сваи (ОПТ):</span> <span id="myPiles">0 ₽</span></div>
+                    <div class="res-row"><span>Оголовки (ОПТ):</span> <span id="myHeads">0 ₽</span></div>
+                    <div class="res-row"><span>Монтаж:</span> <span id="myInstall">0 ₽</span></div>
+                    <div class="res-row"><span>Логистика:</span> <span id="myLogistics">0 ₽</span></div>
+                    <div class="res-row total"><span>ИТОГО:</span> <span id="myTotal">0 ₽</span></div>
+                    <div class="per-pile">За 1 сваю под ключ: <span id="myPerPile">0 ₽</span></div>
+                </div>
+
+                <div class="result-card card-client">
+                    <div class="card-title">💼 Цена для клиента</div>
+                    <div class="res-row"><span>Сваи:</span> <span id="clientPiles">0 ₽</span></div>
+                    <div class="res-row"><span>Оголовки:</span> <span id="clientHeads">0 ₽</span></div>
+                    <div class="res-row"><span>Монтаж:</span> <span id="clientInstall">0 ₽</span></div>
+                    <div class="res-row"><span>Логистика:</span> <span id="clientLogistics">0 ₽</span></div>
+                    <div class="res-row total"><span>ИТОГО:</span> <span id="clientTotal">0 ₽</span></div>
+                    <div class="per-pile">За 1 сваю под ключ: <span id="clientPerPile">0 ₽</span></div>
+                </div>
+
+                <div class="result-card card-profit">
+                    <div class="card-title">💎 Чистая прибыль</div>
+                    <div class="profit-big" id="totalProfit">0 ₽</div>
+                    <div class="profit-sub">Прибыль с 1 сваи под ключ: <strong id="profitPerPile">0 ₽</strong></div>
+                    
+                    <div class="profit-breakdown">
+                        <div><span class="label">Прибыль со свай:</span> <span class="value" id="profitPiles">0 ₽</span></div>
+                        <div><span class="label">Прибыль с оголовков:</span> <span class="value" id="profitHeads">0 ₽</span></div>
+                        <div><span class="label">Прибыль с монтажа:</span> <span class="value" id="profitInstall">0 ₽</span></div>
+                    </div>
+
+                    <div class="shares-grid">
+                        <div class="share-item">
+                            <div class="share-name">Юра (1/3)</div>
+                            <div class="share-amount" id="shareYura">0 ₽</div>
+                        </div>
+                        <div class="share-item">
+                            <div class="share-name">Отец (1/3)</div>
+                            <div class="share-amount" id="shareFather">0 ₽</div>
+                        </div>
+                        <div class="share-item">
+                            <div class="share-name">Аккумуляция (1/3)</div>
+                            <div class="share-amount" id="shareAccum">0 ₽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">👁️ Предпросмотр для отправки клиенту</div>
+            <div class="preview-box" id="previewText">Нажмите "Рассчитать цены", чтобы сформировать предложение.</div>
+
+            <div class="section-title">🔒 Внутренний буфер (для себя)</div>
+            <div class="preview-box internal" id="internalText">Нажмите "Рассчитать цены", чтобы сформировать внутренний отчёт.</div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="copyToClipboard('previewText', 'Расчёт для клиента скопирован!')">📋 Для клиента</button>
+                <button class="btn btn-internal" onclick="copyToClipboard('internalText', 'Внутренний отчёт скопирован!')">🔒 Для себя</button>
+            </div>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="resetForm()">✕ Сброс</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ВКЛАДКА РЕДАКТОРА ПРАЙСА -->
+    <div id="tab-prices" class="tab-content">
+        <div class="section-title">💰 Редактор прайсовых цен на сваи</div>
+        <p style="color: #64748b; margin-bottom: 20px;">Измените цены в таблице — они автоматически применятся в калькуляторе.</p>
+        <div id="priceEditorContainer"></div>
+        
+        <div class="section-title" style="margin-top: 32px;">💰 Цены на оголовки</div>
+        <div id="headsEditorContainer"></div>
+    </div>
+</div>
+
+<div id="toast" class="toast">✅ Скопировано!</div>
+
+<script>
+    const priceData = {
+        piles: {
+            57: { 1.5: {opt: 1400, special: 1350}, 2.0: {opt: 1600, special: 1550}, 2.5: {opt: 1700, special: 1650}, 3.0: {opt: 1800, special: 1750}, 3.5: {opt: 2000, special: 1950}, 4.0: {opt: 2300, special: 2250}, 4.5: {opt: 2600, special: 2550}, 5.0: {opt: 2900, special: 2850} },
+            76: { 1.5: {opt: 1500, special: 1450}, 2.0: {opt: 1700, special: 1650}, 2.5: {opt: 1900, special: 1850}, 3.0: {opt: 2100, special: 2050}, 3.5: {opt: 2800, special: 2750}, 4.0: {opt: 3100, special: 3050}, 4.5: {opt: 3600, special: 3550}, 5.0: {opt: 3950, special: 3900} },
+            89: { 1.5: {opt: 1700, special: 1650}, 2.0: {opt: 1900, special: 1850}, 2.5: {opt: 2200, special: 2150}, 3.0: {opt: 2450, special: 2400}, 3.5: {opt: 2900, special: 2850}, 4.0: {opt: 3200, special: 3150}, 4.5: {opt: 3300, special: 3250}, 5.0: {opt: 3700, special: 3650} },
+            108: { 2.0: {opt: 2300, special: 2250}, 2.5: {opt: 2700, special: 2650}, 3.0: {opt: 3000, special: 2950}, 3.5: {opt: 3500, special: 3450}, 4.0: {opt: 3800, special: 3750}, 4.5: {opt: 4200, special: 4150}, 5.0: {opt: 4700, special: 4650} },
+            133: { 2.0: {opt: 3500, special: 3400}, 2.5: {opt: 4000, special: 3900}, 3.0: {opt: 4500, special: 4400}, 3.5: {opt: 5000, special: 4900}, 4.0: {opt: 5500, special: 5400}, 4.5: {opt: 6000, special: 5900}, 5.0: {opt: 6500, special: 6400} }
+        },
+        heads: {
+            "150x150": {opt: 200, special: 150},
+            "200x200": {opt: 250, special: 200},
+            "250x250": {opt: 400, special: 350},
+            "cone": {
+                57: {opt: 300, special: 250},
+                76: {opt: 350, special: 300},
+                89: {opt: 350, special: 300},
+                108: {opt: 500, special: 450},
+                133: {opt: 600, special: 550}
+            }
+        }
+    };
+
+    let orderItems = [];
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function updateLengths() {
+        const diameter = document.getElementById('diameter').value;
+        const lengthSelect = document.getElementById('length');
+        lengthSelect.innerHTML = '';
+        const lengths = Object.keys(priceData.piles[diameter]).sort((a,b) => parseFloat(a) - parseFloat(b));
+        lengths.forEach(len => {
+            const option = document.createElement('option');
+            option.value = len;
+            option.textContent = len + ' м';
+            lengthSelect.appendChild(option);
+        });
+    }
+
+    function addToOrder() {
+        const diameter = document.getElementById('diameter').value;
+        const length = document.getElementById('length').value;
+        const headType = document.getElementById('headType').value;
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        if (qty <= 0) { alert('Укажите количество'); return; }
+        orderItems.push({ diameter, length, headType, qty });
+        renderOrder();
+    }
+
+    function removeFromOrder(index) {
+        orderItems.splice(index, 1);
+        renderOrder();
+        if (orderItems.length === 0) document.getElementById('orderSection').style.display = 'none';
+        updateTotals();
+    }
+
+    function renderOrder() {
+        const tbody = document.getElementById('orderBody');
+        tbody.innerHTML = '';
+        if (orderItems.length > 0) document.getElementById('orderSection').style.display = 'block';
+        orderItems.forEach((item, index) => {
+            const headName = item.headType === "cone" ? `Конус ${item.diameter}мм` : `Оголовок ${item.headType}`;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.diameter} мм</td>
+                <td>${item.length} м</td>
+                <td>${headName}</td>
+                <td>${item.qty} шт</td>
+                <td><button class="btn-remove" onclick="removeFromOrder(${index})">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function calculateInitial() {
+        const tier = document.getElementById('priceTier').value;
+        const item = orderItems.length > 0 ? orderItems[0] : {
+            diameter: document.getElementById('diameter').value,
+            length: document.getElementById('length').value,
+            headType: document.getElementById('headType').value
+        };
+
+        const pileOpt = priceData.piles[item.diameter][item.length].opt;
+        let headOpt;
+        if (item.headType === "cone") {
+            headOpt = priceData.heads.cone[item.diameter].opt;
+        } else {
+            headOpt = priceData.heads[item.headType].opt;
+        }
+
+        let markup = 0;
+        if (tier.startsWith('retail_')) markup = parseInt(tier.split('_')[1]);
+
+        let clientPilePrice, clientHeadPrice;
+        if (tier === 'opt') {
+            clientPilePrice = pileOpt;
+            clientHeadPrice = headOpt;
+        } else if (tier === 'special') {
+            clientPilePrice = priceData.piles[item.diameter][item.length].special;
+            clientHeadPrice = item.headType === "cone" ? priceData.heads.cone[item.diameter].special : priceData.heads[item.headType].special;
+        } else {
+            clientPilePrice = pileOpt + markup;
+            clientHeadPrice = headOpt + markup;
+        }
+
+        document.getElementById('pilePriceClient').value = clientPilePrice;
+        document.getElementById('headPriceClient').value = clientHeadPrice;
+        updateTotals();
+    }
+
+    function updateTotals() {
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        const pilePriceClient = parseFloat(document.getElementById('pilePriceClient').value) || 0;
+        const headPriceClient = parseFloat(document.getElementById('headPriceClient').value) || 0;
+        const installPrice = parseFloat(document.getElementById('installPrice').value) || 0;
+        const installCostMy = parseFloat(document.getElementById('installCostMy').value) || 0;
+        const deliveryClient = parseFloat(document.getElementById('deliveryClient').value) || 0;
+        const measureClient = parseFloat(document.getElementById('measureClient').value) || 0;
+
+        // Суммы для завода (по ОПТУ)
+        let factoryPiles = 0, factoryHeads = 0;
+        // Моя себестоимость
+        let totalPilesMy = 0, totalHeadsMy = 0, totalInstallMy = 0;
+        // Клиент
+        let totalPilesClient = 0, totalHeadsClient = 0, totalInstallClient = 0;
+        let totalQty = 0;
+        let profitPiles = 0, profitHeads = 0, profitInstall = 0;
+
+        const items = orderItems.length > 0 ? orderItems : [{
+            diameter: document.getElementById('diameter').value,
+            length: document.getElementById('length').value,
+            headType: document.getElementById('headType').value,
+            qty: qty
+        }];
+
+        items.forEach(item => {
+            // ОПТ — для завода и моей себестоимости
+            const pileOpt = priceData.piles[item.diameter][item.length].opt;
+            let headOpt;
+            if (item.headType === "cone") {
+                headOpt = priceData.heads.cone[item.diameter].opt;
+            } else {
+                headOpt = priceData.heads[item.headType].opt;
+            }
+
+            // Завод получает по ОПТУ
+            factoryPiles += pileOpt * item.qty;
+            factoryHeads += headOpt * item.qty;
+
+            // Моя себестоимость = ОПТ + монтаж + логистика
+            totalPilesMy += pileOpt * item.qty;
+            totalHeadsMy += headOpt * item.qty;
+            totalInstallMy += installCostMy * item.qty;
+
+            // Клиент
+            totalPilesClient += pilePriceClient * item.qty;
+            totalHeadsClient += headPriceClient * item.qty;
+            totalInstallClient += installPrice * item.qty;
+
+            totalQty += item.qty;
+
+            // Прибыль: клиент - опт (не спецпрайс!)
+            profitPiles += (pilePriceClient - pileOpt) * item.qty;
+            profitHeads += (headPriceClient - headOpt) * item.qty;
+            profitInstall += (installPrice - installCostMy) * item.qty;
+        });
+
+        const factoryTotal = factoryPiles + factoryHeads;
+        const totalLogMy = deliveryClient;
+        const totalLogClient = deliveryClient + measureClient;
+
+        const grandTotalMy = totalPilesMy + totalHeadsMy + totalInstallMy + totalLogMy;
+        const grandTotalClient = totalPilesClient + totalHeadsClient + totalInstallClient + totalLogClient;
+        
+        const profit = profitPiles + profitHeads + profitInstall;
+        const perPileMy = totalQty > 0 ? Math.round(grandTotalMy / totalQty) : 0;
+        const perPileClient = totalQty > 0 ? Math.round(grandTotalClient / totalQty) : 0;
+        const profitPerPile = totalQty > 0 ? Math.round(profit / totalQty) : 0;
+        const share = Math.round(profit / 3);
+
+        // Завод
+        document.getElementById('factoryPiles').textContent = factoryPiles.toLocaleString() + ' ₽';
+        document.getElementById('factoryHeads').textContent = factoryHeads.toLocaleString() + ' ₽';
+        document.getElementById('factoryTotal').textContent = factoryTotal.toLocaleString() + ' ₽';
+
+        // Моя себестоимость
+        document.getElementById('myPiles').textContent = totalPilesMy.toLocaleString() + ' ₽';
+        document.getElementById('myHeads').textContent = totalHeadsMy.toLocaleString() + ' ₽';
+        document.getElementById('myInstall').textContent = totalInstallMy.toLocaleString() + ' ₽';
+        document.getElementById('myLogistics').textContent = totalLogMy.toLocaleString() + ' ₽';
+        document.getElementById('myTotal').textContent = grandTotalMy.toLocaleString() + ' ₽';
+        document.getElementById('myPerPile').textContent = perPileMy.toLocaleString() + ' ₽';
+
+        // Клиент
+        document.getElementById('clientPiles').textContent = totalPilesClient.toLocaleString() + ' ₽';
+        document.getElementById('clientHeads').textContent = totalHeadsClient.toLocaleString() + ' ₽';
+        document.getElementById('clientInstall').textContent = totalInstallClient.toLocaleString() + ' ₽';
+        document.getElementById('clientLogistics').textContent = totalLogClient.toLocaleString() + ' ₽';
+        document.getElementById('clientTotal').textContent = grandTotalClient.toLocaleString() + ' ₽';
+        document.getElementById('clientPerPile').textContent = perPileClient.toLocaleString() + ' ₽';
+
+        // Прибыль
+        document.getElementById('totalProfit').textContent = profit.toLocaleString() + ' ₽';
+        document.getElementById('profitPerPile').textContent = profitPerPile.toLocaleString() + ' ₽';
+        document.getElementById('profitPiles').textContent = profitPiles.toLocaleString() + ' ₽';
+        document.getElementById('profitHeads').textContent = profitHeads.toLocaleString() + ' ₽';
+        document.getElementById('profitInstall').textContent = profitInstall.toLocaleString() + ' ₽';
+        
+        // Доли
+        document.getElementById('shareYura').textContent = share.toLocaleString() + ' ₽';
+        document.getElementById('shareFather').textContent = share.toLocaleString() + ' ₽';
+        document.getElementById('shareAccum').textContent = share.toLocaleString() + ' ₽';
+
+        // === ПРЕДПРОСМОТР ДЛЯ КЛИЕНТА ===
+        let preview = '📋 РАСЧЁТ СВАЙНОГО ФУНДАМЕНТА\n\n';
+        items.forEach(item => {
+            const headName = item.headType === "cone" ? `Конус ${item.diameter}мм` : `Оголовок ${item.headType}`;
+            preview += `🔩 Сваи ${item.diameter}мм × ${item.length}м: ${pilePriceClient.toLocaleString()} ₽ × ${item.qty} шт = ${(pilePriceClient * item.qty).toLocaleString()} ₽\n`;
+            preview += `🔲 ${headName}: ${headPriceClient.toLocaleString()} ₽ × ${item.qty} шт = ${(headPriceClient * item.qty).toLocaleString()} ₽\n`;
+        });
+        preview += `🔧 Монтаж: ${installPrice.toLocaleString()} ₽ × ${totalQty} шт = ${totalInstallClient.toLocaleString()} ₽\n`;
+        preview += `🚚 Доставка: ${deliveryClient.toLocaleString()} ₽\n`;
+        preview += `📏 Стоимость выезда: ${measureClient === 0 ? 'Бесплатно' : measureClient.toLocaleString() + ' ₽'}\n\n`;
+        preview += `💰 ИТОГО: ${grandTotalClient.toLocaleString()} ₽`;
+        document.getElementById('previewText').textContent = preview;
+
+        // === ВНУТРЕННИЙ БУФЕР ДЛЯ СЕБЯ ===
+        let internal = '🔒 ВНУТРЕННИЙ ОТЧЁТ\n\n';
+        internal += `📦 Заказ: ${totalQty} шт\n\n`;
+        internal += `🏭 ЗАВОДУ (ОПТ):\n`;
+        internal += `   Сваи: ${factoryPiles.toLocaleString()} ₽\n`;
+        internal += `   Оголовки: ${factoryHeads.toLocaleString()} ₽\n`;
+        internal += `   ИТОГО заводу: ${factoryTotal.toLocaleString()} ₽\n\n`;
+        internal += `💰 КЛИЕНТ ПЛАТИТ: ${grandTotalClient.toLocaleString()} ₽\n\n`;
+        internal += `📊 МОИ РАСХОДЫ:\n`;
+        internal += `   Сваи+оголовки (ОПТ): ${(totalPilesMy + totalHeadsMy).toLocaleString()} ₽\n`;
+        internal += `   Монтаж: ${totalInstallMy.toLocaleString()} ₽\n`;
+        internal += `   Логистика+выезд: ${(totalLogMy + measureClient).toLocaleString()} ₽\n`;
+        internal += `   ИТОГО расходов: ${grandTotalMy.toLocaleString()} ₽\n\n`;
+        internal += `💎 ЧИСТАЯ ПРИБЫЛЬ: ${profit.toLocaleString()} ₽\n`;
+        internal += `   └ со свай: ${profitPiles.toLocaleString()} ₽\n`;
+        internal += `   └ с оголовков: ${profitHeads.toLocaleString()} ₽\n`;
+        internal += `   └ с монтажа: ${profitInstall.toLocaleString()} ₽\n\n`;
+        internal += `👥 РАСПРЕДЕЛЕНИЕ (по 1/3):\n`;
+        internal += `   Юра: ${share.toLocaleString()} ₽\n`;
+        internal += `   Отец: ${share.toLocaleString()} ₽\n`;
+        internal += `   Аккумуляция: ${share.toLocaleString()} ₽\n`;
+        document.getElementById('internalText').textContent = internal;
+    }
+
+    function copyToClipboard(elementId, message) {
+        const text = document.getElementById(elementId).textContent;
+        if (text.includes("Нажмите")) {
+            alert("Сначала нажмите кнопку 'Рассчитать цены'");
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast');
+            toast.textContent = '✅ ' + message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+    }
+
+    function resetForm() {
+        document.getElementById('diameter').value = "89";
+        document.getElementById('headType').value = "200x200";
+        document.getElementById('qty').value = 10;
+        document.getElementById('priceTier').value = "retail_200";
+        document.getElementById('installPrice').value = 1700;
+        document.getElementById('installCostMy').value = 1200;
+        document.getElementById('deliveryClient').value = 1500;
+        document.getElementById('measureClient').value = 0;
+        document.getElementById('pilePriceClient').value = "";
+        document.getElementById('headPriceClient').value = "";
+        document.getElementById('previewText').textContent = "Нажмите \"Рассчитать цены\", чтобы сформировать предложение.";
+        document.getElementById('internalText').textContent = "Нажмите \"Рассчитать цены\", чтобы сформировать внутренний отчёт.";
+        
+        orderItems = [];
+        document.getElementById('orderSection').style.display = 'none';
+        renderOrder();
+        
+        ['factoryPiles','factoryHeads','factoryTotal',
+         'myPiles','myHeads','myInstall','myLogistics','myTotal','myPerPile',
+         'clientPiles','clientHeads','clientInstall','clientLogistics','clientTotal','clientPerPile',
+         'totalProfit','profitPerPile','profitPiles','profitHeads','profitInstall',
+         'shareYura','shareFather','shareAccum'].forEach(id => {
+            document.getElementById(id).textContent = "0 ₽";
+        });
+        
+        updateLengths();
+    }
+
+    function renderPriceEditor() {
+        const container = document.getElementById('priceEditorContainer');
+        container.innerHTML = '';
+        
+        Object.keys(priceData.piles).forEach(diameter => {
+            const div = document.createElement('div');
+            div.className = 'price-editor';
+            let tableHTML = `<h3>Сваи ${diameter} мм</h3>`;
+            tableHTML += '<table class="price-table"><thead><tr><th>Длина</th><th>Опт (₽)</th><th>Спецпрайс (₽)</th></tr></thead><tbody>';
+            const lengths = Object.keys(priceData.piles[diameter]).sort((a,b) => parseFloat(a) - parseFloat(b));
+            lengths.forEach(len => {
+                const data = priceData.piles[diameter][len];
+                tableHTML += `
+                    <tr>
+                        <td><strong>${len} м</strong></td>
+                        <td><input type="number" value="${data.opt}" 
+                            onchange="updatePrice('piles', ${diameter}, '${len}', 'opt', this.value)"></td>
+                        <td><input type="number" value="${data.special}" 
+                            onchange="updatePrice('piles', ${diameter}, '${len}', 'special', this.value)"></td>
+                    </tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            div.innerHTML = tableHTML;
+            container.appendChild(div);
+        });
+        
+        const headsContainer = document.getElementById('headsEditorContainer');
+        headsContainer.innerHTML = '';
+        const headsDiv = document.createElement('div');
+        headsDiv.className = 'price-editor';
+        let headsHTML = '<h3>Оголовки</h3><table class="price-table"><thead><tr><th>Тип</th><th>Опт (₽)</th><th>Спецпрайс (₽)</th></tr></thead><tbody>';
+        ['150x150', '200x200', '250x250'].forEach(type => {
+            const data = priceData.heads[type];
+            headsHTML += `
+                <tr>
+                    <td><strong>Оголовок ${type}</strong></td>
+                    <td><input type="number" value="${data.opt}" 
+                        onchange="updateHeadPrice('${type}', 'opt', this.value)"></td>
+                    <td><input type="number" value="${data.special}" 
+                        onchange="updateHeadPrice('${type}', 'special', this.value)"></td>
+                </tr>`;
+        });
+        Object.keys(priceData.heads.cone).forEach(d => {
+            const data = priceData.heads.cone[d];
+            headsHTML += `
+                <tr>
+                    <td><strong>Конус ${d} мм</strong></td>
+                    <td><input type="number" value="${data.opt}" 
+                        onchange="updateConePrice(${d}, 'opt', this.value)"></td>
+                    <td><input type="number" value="${data.special}" 
+                        onchange="updateConePrice(${d}, 'special', this.value)"></td>
+                </tr>`;
+        });
+        headsHTML += '</tbody></table>';
+        headsDiv.innerHTML = headsHTML;
+        headsContainer.appendChild(headsDiv);
+    }
+
+    function updatePrice(type, diameter, length, column, value) {
+        priceData.piles[diameter][length][column] = Number(value);
+        updateTotals();
+    }
+    function updateHeadPrice(type, column, value) {
+        priceData.heads[type][column] = Number(value);
+        updateTotals();
+    }
+    function updateConePrice(diameter, column, value) {
+        priceData.heads.cone[diameter][column] = Number(value);
+        updateTotals();
+    }
+
+    updateLengths();
+    renderPriceEditor();
+</script>
+
+</body>
+</html>
